@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { FiEdit, FiTrash2, FiCheck } from "react-icons/fi"; // Import icons
+import { FiEdit, FiTrash2, FiCheck } from "react-icons/fi";
 
 const categories = ["To-Do", "In Progress", "Done"];
 
@@ -11,52 +13,86 @@ const TasksSection = () => {
     description: "",
     category: "To-Do",
   });
-  const [editingTask, setEditingTask] = useState(null); // Track the task being edited
+  const [editingTask, setEditingTask] = useState(null);
 
   // Fetch tasks from server
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
-     const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/task`);
-
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/task`);
       const data = await response.json();
       if (Array.isArray(data)) {
         setTasks(data);
       } else {
         console.error("Expected array but got:", data);
-        setTasks([]); // Fallback to empty array if data is not an array
+        setTasks([]);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
-      setTasks([]); // Fallback to empty array in case of error
+      setTasks([]);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [fetchTasks]);
 
   // Handle Drag & Drop
   const handleDragEnd = async (result) => {
-    const { source, destination } = result;
+    const { source, destination, draggableId } = result;
+
+    // If the task is dropped outside or no destination is found
     if (!destination) return;
 
-    const updatedTasks = [...tasks];
-      const movedTask = updatedTasks.splice(source.index, 1)[0];
-      console.log(movedTask._id);
-    movedTask.category = destination.droppableId;
-    updatedTasks.splice(destination.index, 0, movedTask);
-    setTasks(updatedTasks);
+    // If the task hasn't moved, do nothing
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return;
+    }
 
-    // Update in backend & fetch latest data
+    // Create a new array of tasks
+    const newTasks = Array.from(tasks);
+
+    // Find the task that was dragged
+    const draggedTask = newTasks.find((task) => task._id === draggableId);
+
+    if (!draggedTask) {
+      console.error("Dragged task not found");
+      return;
+    }
+
+    // Remove the task from its original position
+    newTasks.splice(newTasks.indexOf(draggedTask), 1);
+
+    // Update the task's category if it has changed
+    if (source.droppableId !== destination.droppableId) {
+      draggedTask.category = destination.droppableId;
+    }
+
+    // Insert the task at its new position
+    newTasks.splice(destination.index, 0, draggedTask);
+
+    // Update the local state
+    setTasks(newTasks);
+
+    // Update the backend
     try {
-      await fetch(`${import.meta.env.VITE_SERVER_URL}/task/${movedTask._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category: movedTask.category }),
-      });
-      fetchTasks(); // Reload tasks from server
+      await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/task/reorder/${draggableId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category: draggedTask.category,
+            index: destination.index,
+          }),
+        }
+      );
     } catch (error) {
       console.error("Error updating task:", error);
+      // Revert the local state change if the server update fails
+      fetchTasks();
     }
   };
 
@@ -91,7 +127,7 @@ const TasksSection = () => {
       await fetch(`${import.meta.env.VITE_SERVER_URL}/task/${taskId}`, {
         method: "DELETE",
       });
-      setTasks(tasks.filter((task) => task._id !== taskId)); // Remove task immediately
+      setTasks(tasks.filter((task) => task._id !== taskId));
     } catch (error) {
       console.error("Error deleting task:", error);
     }
@@ -103,12 +139,10 @@ const TasksSection = () => {
   };
 
   // Save Updated Task
-    const handleSaveTask = async (taskId, updatedTask) => {
-        console.log('id', taskId, 'updatetask', updatedTask);
-        // eslint-disable-next-line no-unused-vars
-        const { _id, ...taskToUpdate } = updatedTask;
-        // console.log(_id);
-        
+  const handleSaveTask = async (taskId, updatedTask) => {
+    // eslint-disable-next-line no-unused-vars
+    const { _id, ...taskToUpdate } = updatedTask;
+
     try {
       await fetch(`${import.meta.env.VITE_SERVER_URL}/task/${taskId}`, {
         method: "PUT",
@@ -117,7 +151,7 @@ const TasksSection = () => {
       });
 
       setEditingTask(null);
-      fetchTasks(); // Refresh tasks
+      fetchTasks();
     } catch (error) {
       console.error("Error updating task:", error);
     }
