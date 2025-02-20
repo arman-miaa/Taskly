@@ -74,7 +74,8 @@ const TasksSection = () => {
     newTasks.splice(destination.index, 0, draggedTask);
 
     // Update the local state
-    setTasks(newTasks);
+      setTasks(newTasks);
+      console.log(draggableId,draggedTask,destination);
 
     // Update the backend
     try {

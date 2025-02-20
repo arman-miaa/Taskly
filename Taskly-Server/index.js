@@ -85,6 +85,8 @@ async function run() {
     // 🔹 **PUT: Update Task (Category, Title, etc.)**
     app.put("/task/:id", async (req, res) => {
       const id = req.params.id;
+      // console.log('id',id);
+      console.log("body", req.body, "id", id);
 
       if (!isValidObjectId(id)) {
         return res.status(400).send({ message: "Invalid task ID" });
@@ -107,6 +109,41 @@ async function run() {
         io.emit("taskUpdated", updatedData); // Notify all clients
 
         res.send(updatedData);
+      } catch (error) {
+        console.error("Error updating task:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
+
+    // 🔹 **PUT: Update Task Position (Category, Index) for Drag & Drop**
+    app.put("/task/reorder/:id", async (req, res) => {
+      const id = req.params.id;
+      const { category, index } = req.body; // Get new category and index from request body
+
+      // Validate ObjectId
+      if (!isValidObjectId(id)) {
+        return res.status(400).send({ message: "Invalid task ID" });
+      }
+
+      try {
+        const query = { _id: new ObjectId(id) };
+
+        // Update the category and index only (not title/description)
+        const updateDoc = { $set: { category: category, index: index } };
+
+        const result = await taskCollection.updateOne(query, updateDoc);
+
+        // If no task was updated, return a 404 error
+        if (result.modifiedCount === 0) {
+          return res.status(404).send({ message: "Task not found" });
+        }
+
+        // Fetch the updated task after modification
+        const updatedTask = await taskCollection.findOne(query);
+
+        io.emit("taskReordered", updatedTask); // Notify all clients about the reorder
+
+        res.send(updatedTask);
       } catch (error) {
         console.error("Error updating task:", error);
         res.status(500).send({ message: "Internal Server Error" });
@@ -136,8 +173,6 @@ async function run() {
         res.status(500).send({ message: "Internal Server Error" });
       }
     });
-      
-      
   } catch (error) {
     console.error("Error during MongoDB operation:", error);
     process.exit(1); // Exit the process if DB connection fails
