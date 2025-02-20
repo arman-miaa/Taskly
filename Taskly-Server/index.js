@@ -54,19 +54,20 @@ async function run() {
       });
     });
 
-    // 🔹 **GET: Fetch All Tasks (Sorted by Date)**
-    app.get("/task", async (req, res) => {
-      try {
-        const result = await taskCollection
-          .find()
-          .sort({ createdAt: -1 }) // Sort tasks by latest first
-          .toArray();
-        res.send(result);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-        res.status(500).send({ message: "Internal Server Error" });
-      }
-    });
+app.get("/task", async (req, res) => {
+  try {
+    const result = await taskCollection
+      .find()
+      .sort({ index: 1, }) // First sort by index, then by creation date
+      .toArray();
+
+    // Ensure the correct order and return to client
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
 
     // 🔹 **POST: Add New Task**
     app.post("/task", async (req, res) => {
@@ -115,7 +116,7 @@ async function run() {
       }
     });
 
-    // 🔹 **PUT: Update Task Position (Category, Index) for Drag & Drop**
+    // 🔹 **PUT: Update Task Position (Category, Index) for Drag & Drop with Unique Index**
     app.put("/task/reorder/:id", async (req, res) => {
       const id = req.params.id;
       const { category, index } = req.body; // Get new category and index from request body
@@ -128,22 +129,37 @@ async function run() {
       try {
         const query = { _id: new ObjectId(id) };
 
-        // Update the category and index only (not title/description)
-        const updateDoc = { $set: { category: category, index: index } };
+        // Fetch current task to get category and index before the update
+        const currentTask = await taskCollection.findOne(query);
 
-        const result = await taskCollection.updateOne(query, updateDoc);
-
-        // If no task was updated, return a 404 error
-        if (result.modifiedCount === 0) {
+        if (!currentTask) {
           return res.status(404).send({ message: "Task not found" });
         }
 
-        // Fetch the updated task after modification
-        const updatedTask = await taskCollection.findOne(query);
+        // Step 1: Check if the index already exists in the category
+        const existingTask = await taskCollection.findOne({
+          category: category,
+          index: index,
+        });
 
-        io.emit("taskReordered", updatedTask); // Notify all clients about the reorder
+        // If index already exists, increment it
+        if (existingTask) {
+          // Increment all subsequent tasks' indices to avoid duplicates
+          await taskCollection.updateMany(
+            { category: category, index: { $gte: index } },
+            { $inc: { index: 1 } }
+          );
+        }
 
-        res.send(updatedTask);
+        // Step 2: Update the current task with the new index and category
+        const updateDoc = { $set: { category: category, index: index } };
+        await taskCollection.updateOne(query, updateDoc);
+
+        // Step 3: Emit changes via socket to update client in real-time
+        io.emit("taskReordered", { id, category, index });
+
+        // Send back updated task
+        res.send({ message: "Task reordered successfully" });
       } catch (error) {
         console.error("Error updating task:", error);
         res.status(500).send({ message: "Internal Server Error" });

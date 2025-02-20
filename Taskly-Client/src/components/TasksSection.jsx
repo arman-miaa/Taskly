@@ -37,65 +37,65 @@ const TasksSection = () => {
   }, [fetchTasks]);
 
   // Handle Drag & Drop
-  const handleDragEnd = async (result) => {
-    const { source, destination, draggableId } = result;
+ const handleDragEnd = async (result) => {
+   const { source, destination, draggableId } = result;
 
-    // If the task is dropped outside or no destination is found
-    if (!destination) return;
+   // If the task is dropped outside or no destination is found
+   if (!destination) return;
 
-    // If the task hasn't moved, do nothing
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+   // If the task hasn't moved, do nothing
+   if (
+     source.droppableId === destination.droppableId &&
+     source.index === destination.index
+   ) {
+     return;
+   }
 
-    // Create a new array of tasks
-    const newTasks = Array.from(tasks);
+   // Create a new array of tasks
+   const newTasks = Array.from(tasks);
 
-    // Find the task that was dragged
-    const draggedTask = newTasks.find((task) => task._id === draggableId);
+   // Find the task that was dragged
+   const draggedTask = newTasks.find((task) => task._id === draggableId);
 
-    if (!draggedTask) {
-      console.error("Dragged task not found");
-      return;
-    }
+   if (!draggedTask) {
+     console.error("Dragged task not found");
+     return;
+   }
 
-    // Remove the task from its original position
-    newTasks.splice(newTasks.indexOf(draggedTask), 1);
+   // Remove the task from its original position
+   newTasks.splice(newTasks.indexOf(draggedTask), 1);
 
-    // Update the task's category if it has changed
-    if (source.droppableId !== destination.droppableId) {
-      draggedTask.category = destination.droppableId;
-    }
+   // Update the task's category if it has changed
+   if (source.droppableId !== destination.droppableId) {
+     draggedTask.category = destination.droppableId;
+   }
 
-    // Insert the task at its new position
-    newTasks.splice(destination.index, 0, draggedTask);
+   // Insert the task at its new position
+   newTasks.splice(destination.index, 0, draggedTask);
 
-    // Update the local state
-      setTasks(newTasks);
-      console.log(draggableId,draggedTask,destination);
+   // Update the local state
+   setTasks(newTasks);
 
-    // Update the backend
-    try {
-      await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/task/reorder/${draggableId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            category: draggedTask.category,
-            index: destination.index,
-          }),
-        }
-      );
-    } catch (error) {
-      console.error("Error updating task:", error);
-      // Revert the local state change if the server update fails
-      fetchTasks();
-    }
-  };
+   // Update the backend
+   try {
+     await fetch(
+       `${import.meta.env.VITE_SERVER_URL}/task/reorder/${draggableId}`,
+       {
+         method: "PUT",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           category: draggedTask.category,
+           index: destination.index,
+         }),
+       }
+     );
+   } catch (error) {
+     console.error("Error updating task:", error);
+     // Revert the local state change if the server update fails
+     fetchTasks();
+   }
+ };
+
 
   // Handle Input Change
   const handleInputChange = (e) => {
@@ -163,7 +163,7 @@ const TasksSection = () => {
     const d = new Date(date);
     return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
   };
-
+// console.log(tasks);
   return (
     <div className="container mx-auto p-5">
       {/* Task Input Form */}
@@ -207,7 +207,8 @@ const TasksSection = () => {
       {/* Drag & Drop Task Board */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {categories.map((category) => (
+                  {categories.map((category) => (
+              
             <Droppable key={category} droppableId={category}>
               {(provided) => (
                 <div
