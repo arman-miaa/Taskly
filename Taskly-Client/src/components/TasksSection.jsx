@@ -16,7 +16,8 @@ const TasksSection = () => {
   // Fetch tasks from server
   const fetchTasks = async () => {
     try {
-      const response = await fetch("http://localhost:5000/task");
+     const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/task`);
+
       const data = await response.json();
       if (Array.isArray(data)) {
         setTasks(data);
@@ -40,14 +41,15 @@ const TasksSection = () => {
     if (!destination) return;
 
     const updatedTasks = [...tasks];
-    const movedTask = updatedTasks.splice(source.index, 1)[0];
+      const movedTask = updatedTasks.splice(source.index, 1)[0];
+      console.log(movedTask._id);
     movedTask.category = destination.droppableId;
     updatedTasks.splice(destination.index, 0, movedTask);
     setTasks(updatedTasks);
 
     // Update in backend & fetch latest data
     try {
-      await fetch(`http://localhost:5000/task/${movedTask._id}`, {
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/task/${movedTask._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category: movedTask.category }),
@@ -68,7 +70,7 @@ const TasksSection = () => {
     if (!newTask.title.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:5000/task", {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/task`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTask),
@@ -86,7 +88,9 @@ const TasksSection = () => {
   // Delete Task
   const handleDeleteTask = async (taskId) => {
     try {
-      await fetch(`http://localhost:5000/task/${taskId}`, { method: "DELETE" });
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/task/${taskId}`, {
+        method: "DELETE",
+      });
       setTasks(tasks.filter((task) => task._id !== taskId)); // Remove task immediately
     } catch (error) {
       console.error("Error deleting task:", error);
@@ -99,12 +103,17 @@ const TasksSection = () => {
   };
 
   // Save Updated Task
-  const handleSaveTask = async (taskId, updatedTask) => {
+    const handleSaveTask = async (taskId, updatedTask) => {
+        console.log('id', taskId, 'updatetask', updatedTask);
+        // eslint-disable-next-line no-unused-vars
+        const { _id, ...taskToUpdate } = updatedTask;
+        // console.log(_id);
+        
     try {
-      await fetch(`http://localhost:5000/task/${taskId}`, {
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/task/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedTask),
+        body: JSON.stringify(taskToUpdate),
       });
 
       setEditingTask(null);
