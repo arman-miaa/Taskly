@@ -1,82 +1,71 @@
-
+import { useContext } from "react";
+import { NavLink, useNavigate } from "react-router";
+import { AuthContext } from "../providers/AuthProvider";
 
 const Navbar = () => {
-  return (
-    <div>
-      <div className="navbar bg-base-100 shadow-sm">
-        <div className="navbar-start">
-          <div className="dropdown">
-            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {" "}
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h8m-8 6h16"
-                />{" "}
-              </svg>
-            </div>
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
-            >
-              <li>
-                <a>Item 1</a>
-              </li>
-              <li>
-                <a>Parent</a>
-                <ul className="p-2">
-                  <li>
-                    <a>Submenu 1</a>
-                  </li>
-                  <li>
-                    <a>Submenu 2</a>
-                  </li>
-                </ul>
-              </li>
-              <li>
-                <a>Item 3</a>
-              </li>
-            </ul>
-          </div>
-          <a className="btn btn-ghost text-xl">daisyUI</a>
-        </div>
-        <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1">
-            <li>
-              <a>Item 1</a>
-            </li>
-            <li>
-              <details>
-                <summary>Parent</summary>
-                <ul className="p-2">
-                  <li>
-                    <a>Submenu 1</a>
-                  </li>
-                  <li>
-                    <a>Submenu 2</a>
-                  </li>
-                </ul>
-              </details>
-            </li>
-            <li>
-              <a>Item 3</a>
-            </li>
-          </ul>
-        </div>
-        <div className="navbar-end">
-          <a className="btn">Button</a>
-        </div>
-      </div>
-    </div>
-  );
-}
+  const { user, logOutUser, loading } = useContext(AuthContext);
 
-export default Navbar
+  const navigate = useNavigate();
+
+  if (!loading && !user) {
+    navigate("/login")
+  }
+
+  // Logout Function
+  const handleLogout = async () => {
+    try {
+      await logOutUser();
+      console.log("User logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error.message);
+    }
+  };
+
+  return (
+    <nav className="bg-white shadow-md py-3 px-6 flex justify-between items-center">
+      {/* Left Side - Branding */}
+      <div className="text-2xl font-bold text-primary">
+        <NavLink to="/">Taskly</NavLink>
+      </div>
+
+      {/* Center - Navigation Links */}
+      <div className="hidden md:flex gap-6 text-lg font-medium">
+        <NavLink to="/" className="hover:text-primary">
+          Home
+        </NavLink>
+        <NavLink to="/tasks" className="hover:text-primary">
+          Tasks
+        </NavLink>
+        <NavLink to="/about" className="hover:text-primary">
+          About
+        </NavLink>
+      </div>
+
+      {/* Right Side - User Profile / Login */}
+      <div className="flex items-center gap-4">
+        {user ? (
+          <div className="flex items-center gap-3">
+            <img
+              src={user.photoURL || "https://via.placeholder.com/40"} // User Photo
+              alt="User"
+              className="w-10 h-10 rounded-full border"
+            />
+            {/* <span className="text-gray-700 font-medium">{user.email}</span> */}
+            <button
+              onClick={handleLogout}
+              className="btn btn-sm btn-outline text-red-500"
+            >
+              Logout
+            </button>
+          </div>
+        ) : (
+          <NavLink to="/login" className="btn btn-primary btn-sm">
+            Login
+          </NavLink>
+        )}
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
