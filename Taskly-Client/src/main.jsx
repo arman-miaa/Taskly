@@ -5,9 +5,11 @@ import "./index.css";
 import { BrowserRouter, Routes, Route } from "react-router";
 import MainLayout from "./layout/MainLayout";
 import Home from "./pages/Home";
-import WelcomePage from "./pages/WelcomePage";
+
 import LoginPage from "./pages/LoginPage";
 import AuthProvider from "./providers/AuthProvider";
+import Tasks from "./pages/Tasks";
+import About from "./pages/About";
 // import routes from "./routes/Routes"; 
 
 createRoot(document.getElementById("root")).render(
@@ -17,8 +19,9 @@ createRoot(document.getElementById("root")).render(
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
-            <Route path="welcome" element={<WelcomePage />} />
+            <Route path="tasks" element={<Tasks />} />
             <Route path="login" element={<LoginPage />} />
+            <Route path="about" element={<About/>} />
           </Route>
         </Routes>
       </BrowserRouter>

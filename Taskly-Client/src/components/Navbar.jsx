@@ -1,6 +1,8 @@
 import { useContext } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { AuthContext } from "../providers/AuthProvider";
+import logo from "/Taskly-logo.webp";
+
 
 const Navbar = () => {
   const { user, logOutUser, loading } = useContext(AuthContext);
@@ -22,10 +24,18 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md py-3 px-6 flex justify-between items-center">
+    <nav className="bg-gray-300 shadow-md py-3 px-6 flex justify-between items-center">
       {/* Left Side - Branding */}
       <div className="text-2xl font-bold text-primary">
-        <NavLink to="/">Taskly</NavLink>
+        <NavLink to="/" className='flex items-center gap-1'>
+          {" "}
+          <img
+            className="w-8 h-8 rounded-full object-cover"
+            src={logo}
+            alt=""
+          />{" "}
+          <h3>Taskly</h3>
+        </NavLink>
       </div>
 
       {/* Center - Navigation Links */}
