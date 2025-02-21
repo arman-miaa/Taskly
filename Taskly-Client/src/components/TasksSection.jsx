@@ -5,6 +5,9 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { FiEdit, FiTrash2, FiCheck } from "react-icons/fi";
 
 const categories = ["To-Do", "In Progress", "Done"];
+const API_URL = "http://localhost:5000"; 
+// const API_URL = "https://taskly-server-one.vercel.app"; 
+
 
 const TasksSection = () => {
   const [tasks, setTasks] = useState([]);
@@ -14,14 +17,18 @@ const TasksSection = () => {
     category: "To-Do",
   });
   const [editingTask, setEditingTask] = useState(null);
-  // const ${API_URL} = 
 
-  const API_URL = import.meta.env.VITE_SERVER_URL;
+    useEffect(() => {
+      const socket = io(API_URL);
+      socket.on("task-updated", fetchTasks);
+      return () => socket.disconnect();
+    }, []);
+
 
   // Fetch tasks from server
   const fetchTasks = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/task`);
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/tasks`);
       const data = await response.json();
       if (Array.isArray(data)) {
         setTasks(data);
@@ -35,11 +42,7 @@ const TasksSection = () => {
     }
   }, []);
 
- useEffect(() => {
-   const socket = io(API_URL);
-   socket.on("task-updated", fetchTasks);
-   return () => socket.disconnect();
- }, []);
+
 
   useEffect(() => {
     fetchTasks();
@@ -87,14 +90,17 @@ const TasksSection = () => {
 
     // Update the backend
     try {
-      await fetch(`${API_URL}/task/reorder/${draggableId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category: draggedTask.category,
-          index: destination.index,
-        }),
-      });
+      await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/tasks/reorder/${draggableId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category: draggedTask.category,
+            index: destination.index,
+          }),
+        }
+      );
     } catch (error) {
       console.error("Error updating task:", error);
       // Revert the local state change if the server update fails
@@ -112,7 +118,7 @@ const TasksSection = () => {
     if (!newTask.title.trim()) return;
 
     try {
-      const response = await fetch(`${API_URL}/task`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTask),
@@ -130,7 +136,7 @@ const TasksSection = () => {
   // Delete Task
   const handleDeleteTask = async (taskId) => {
     try {
-      await fetch(`${API_URL}/task/${taskId}`, {
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/tasks/${taskId}`, {
         method: "DELETE",
       });
       setTasks(tasks.filter((task) => task._id !== taskId));
@@ -150,7 +156,7 @@ const TasksSection = () => {
     const { _id, ...taskToUpdate } = updatedTask;
 
     try {
-      await fetch(`${API_URL}/task/${taskId}`, {
+      await fetch(`${import.meta.env.VITE_SERVER_URL}/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(taskToUpdate),

@@ -54,28 +54,28 @@ async function run() {
       });
     });
 
-app.get("/task", async (req, res) => {
-  try {
-    const result = await taskCollection
-      .find()
-      .sort({ index: 1, }) // First sort by index, then by creation date
-      .toArray();
+    app.get("/tasks", async (req, res) => {
+      try {
+        const result = await taskCollection
+          .find()
+          .sort({ index: 1 }) // First sort by index, then by creation date
+          .toArray();
 
-    // Ensure the correct order and return to client
-    res.send(result);
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-    res.status(500).send({ message: "Internal Server Error" });
-  }
-});
+        // Ensure the correct order and return to client
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+      }
+    });
 
     // 🔹 **POST: Add New Task**
-    app.post("/task", async (req, res) => {
+    app.post("/tasks", async (req, res) => {
       try {
         const task = req.body;
         task.createdAt = new Date(); // Add creation date
         const result = await taskCollection.insertOne(task);
-        io.emit("taskCreated", task); // Notify all clients
+        io.emit("task-updated", task); // Notify all clients
         res.send(result);
       } catch (error) {
         console.error("Error adding task:", error);
@@ -84,7 +84,7 @@ app.get("/task", async (req, res) => {
     });
 
     // 🔹 **PUT: Update Task (Category, Title, etc.)**
-    app.put("/task/:id", async (req, res) => {
+    app.put("/tasks/:id", async (req, res) => {
       const id = req.params.id;
       // console.log('id',id);
       console.log("body", req.body, "id", id);
@@ -107,7 +107,7 @@ app.get("/task", async (req, res) => {
 
         // Fetch updated task to emit full updated data
         const updatedData = await taskCollection.findOne(query);
-        io.emit("taskUpdated", updatedData); // Notify all clients
+        io.emit("task-updated", updatedData); // Notify all clients
 
         res.send(updatedData);
       } catch (error) {
@@ -117,7 +117,7 @@ app.get("/task", async (req, res) => {
     });
 
     // 🔹 **PUT: Update Task Position (Category, Index) for Drag & Drop with Unique Index**
-    app.put("/task/reorder/:id", async (req, res) => {
+    app.put("/tasks/reorder/:id", async (req, res) => {
       const id = req.params.id;
       const { category, index } = req.body; // Get new category and index from request body
 
@@ -156,7 +156,7 @@ app.get("/task", async (req, res) => {
         await taskCollection.updateOne(query, updateDoc);
 
         // Step 3: Emit changes via socket to update client in real-time
-        io.emit("taskReordered", { id, category, index });
+        io.emit("task-updated", { id, category, index });
 
         // Send back updated task
         res.send({ message: "Task reordered successfully" });
@@ -167,7 +167,7 @@ app.get("/task", async (req, res) => {
     });
 
     // 🔹 **DELETE: Remove Task**
-    app.delete("/task/:id", async (req, res) => {
+    app.delete("/tasks/:id", async (req, res) => {
       const id = req.params.id;
 
       if (!isValidObjectId(id)) {
@@ -182,7 +182,7 @@ app.get("/task", async (req, res) => {
           return res.status(404).send({ message: "Task not found" });
         }
 
-        io.emit("taskDeleted", id); // Notify clients about deletion
+        io.emit("task-updated", id); // Notify clients about deletion
         res.send({ message: "Task deleted successfully" });
       } catch (error) {
         console.error("Error deleting task:", error);
