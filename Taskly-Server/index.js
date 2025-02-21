@@ -12,9 +12,12 @@ const port = process.env.PORT || 5000;
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*", // Allow all origins (for development)
+    origin: "*",
+    methods: ["GET", "POST"], // Allowed methods
+   
   },
 });
+
 
 // Middleware
 app.use(cors());
