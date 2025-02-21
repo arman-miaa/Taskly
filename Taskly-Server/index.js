@@ -36,8 +36,8 @@ const isValidObjectId = (id) => ObjectId.isValid(id);
 // Run function to handle database operations
 async function run() {
   try {
-    await client.connect();
-    console.log("✅ Connected to MongoDB");
+    // await client.connect();
+    // console.log("✅ Connected to MongoDB");
 
     const taskCollection = client.db("taskManagerDB").collection("tasks");
 
