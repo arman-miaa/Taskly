@@ -1,8 +1,10 @@
 import { io } from "socket.io-client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext, use } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { FiEdit, FiTrash2, FiCheck } from "react-icons/fi";
+import { AuthContext } from "../providers/AuthProvider";
+import { toast } from "react-toastify";
 
 const categories = ["To-Do", "In Progress", "Done"];
 const API_URL = "http://localhost:5000"; 
@@ -16,7 +18,12 @@ const TasksSection = () => {
     description: "",
     category: "To-Do",
   });
+  const { user, loading } = useContext(AuthContext);
+  // console.log(user);
   const [editingTask, setEditingTask] = useState(null);
+
+
+ 
 
     useEffect(() => {
       const socket = io(API_URL, {
@@ -26,29 +33,43 @@ const TasksSection = () => {
       return () => socket.disconnect();
     }, []);
 
-
   // Fetch tasks from server
   const fetchTasks = useCallback(async () => {
+    // if (!user?.email) {
+    //   console.error("User email is not available");
+    //   toast.warn("User email is not available");
+      
+    //   return;
+    // }
+
     try {
-      const response = await fetch(`${API_URL}/tasks`);
+      const response = await fetch(`${API_URL}/tasks?email=${user.email}`);
       const data = await response.json();
+
       if (Array.isArray(data)) {
         setTasks(data);
       } else {
         console.error("Expected array but got:", data);
+        // toast.error("Unauthorized access");
         setTasks([]);
       }
     } catch (error) {
       console.error("Error fetching tasks:", error);
+      toast.error("Error fetching tasks:");
       setTasks([]);
     }
-  }, []);
-
-
+  }, [user]); 
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    if (!loading && user?.email) {
+      fetchTasks();
+    }
+  }, [loading, user, fetchTasks]);
+
 
   // Handle Drag & Drop
   const handleDragEnd = async (result) => {
@@ -120,8 +141,17 @@ const TasksSection = () => {
       const response = await fetch(`${API_URL}/tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTask),
+        body: JSON.stringify({
+          ...newTask, // Keep existing task data
+          email: user.email, // Attach user email
+        }),
       });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Failed to add task:", data.message);
+
+        return;
+      }
 
       if (response.ok) {
         fetchTasks();
@@ -137,6 +167,7 @@ const TasksSection = () => {
     try {
       await fetch(`${API_URL}/tasks/${taskId}`, {
         method: "DELETE",
+        
       });
       setTasks(tasks.filter((task) => task._id !== taskId));
     } catch (error) {

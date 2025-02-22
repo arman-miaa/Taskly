@@ -63,7 +63,7 @@ async function run() {
       const email = req.params.email;
       const query = { email };
       const user = req.body;
-      console.log(user,query,email);
+     
 
       const isExist = await userCollection.findOne(query);
       if (isExist) {
@@ -76,9 +76,17 @@ async function run() {
 
     app.get("/tasks", async (req, res) => {
       try {
+        const email = req.query.email; 
+        // console.log(email,'emial');
+        
+
+           const userExists = await userCollection.findOne({ email });
+           if (!userExists) {
+             return res.status(403).send({ message: "Unauthorized access" });
+           }
         const result = await taskCollection
           .find()
-          .sort({ index: 1 }) // First sort by index, then by creation date
+          .sort({ index: 1 }) 
           .toArray();
 
         // Ensure the correct order and return to client
@@ -92,7 +100,17 @@ async function run() {
     // 🔹 **POST: Add New Task**
     app.post("/tasks", async (req, res) => {
       try {
+        const email = req.body.email;
+        // Check if the user exists
+        const userExists = await userCollection.findOne({ email });
+        if (!userExists) {
+          return res
+            .status(403)
+            .send({ message: "Unauthorized: User not found" });
+        }
+
         const task = req.body;
+
         task.createdAt = new Date(); // Add creation date
         const result = await taskCollection.insertOne(task);
         io.emit("task-updated", task); // Notify all clients
@@ -189,6 +207,7 @@ async function run() {
     // 🔹 **DELETE: Remove Task**
     app.delete("/tasks/:id", async (req, res) => {
       const id = req.params.id;
+     
 
       if (!isValidObjectId(id)) {
         return res.status(400).send({ message: "Invalid task ID" });
