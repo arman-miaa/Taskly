@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { FiEdit, FiTrash2, FiCheck } from "react-icons/fi";
 import { AuthContext } from "../providers/AuthProvider";
 import { toast } from "react-toastify";
+import { FaCalendar } from "react-icons/fa";
 
 const categories = ["To-Do", "In Progress", "Done"];
 // const API_URL = "http://localhost:5000"; 
@@ -273,7 +274,7 @@ const TasksSection = () => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="bg-white p-3 mb-2 shadow-md rounded-md flex justify-between items-center"
+                            className="bg-white p-3 mb-2 shadow-md rounded-md "
                           >
                             {/* Task Details */}
                             {editingTask?._id === task._id ? (
@@ -307,34 +308,36 @@ const TasksSection = () => {
                                 <p className="text-sm text-gray-600">
                                   {task.description}
                                 </p>
-                                <p className="text-xs text-gray-400">
-                                  {formatDate(task.createdAt)}
-                                </p>
                               </div>
                             )}
 
-                            {/* Action Buttons */}
-                            <div className="flex gap-2">
-                              {editingTask?._id === task._id ? (
-                                <FiCheck
-                                  className="cursor-pointer text-green-500"
-                                  onClick={() =>
-                                    handleSaveTask(task._id, editingTask)
-                                  }
-                                  size={18}
+                            <div className="flex justify-between items-center mt-4">
+                              <p className="text- text-gray-400 flex items-center gap-2">
+                              <FaCalendar/>  {formatDate(task.createdAt)}
+                              </p>
+                              {/* Action Buttons */}
+                              <div className="flex gap-2">
+                                {editingTask?._id === task._id ? (
+                                  <FiCheck
+                                    className="cursor-pointer text-green-500"
+                                    onClick={() =>
+                                      handleSaveTask(task._id, editingTask)
+                                    }
+                                    size={24}
+                                  />
+                                ) : (
+                                  <FiEdit
+                                    className="cursor-pointer text-blue-500"
+                                    onClick={() => handleEditTask(task)}
+                                    size={24}
+                                  />
+                                )}
+                                <FiTrash2
+                                  className="cursor-pointer text-red-500"
+                                  onClick={() => handleDeleteTask(task._id)}
+                                  size={24}
                                 />
-                              ) : (
-                                <FiEdit
-                                  className="cursor-pointer text-blue-500"
-                                  onClick={() => handleEditTask(task)}
-                                  size={18}
-                                />
-                              )}
-                              <FiTrash2
-                                className="cursor-pointer text-red-500"
-                                onClick={() => handleDeleteTask(task._id)}
-                                size={18}
-                              />
+                              </div>
                             </div>
                           </div>
                         )}
