@@ -80,13 +80,3 @@ Taskly is a task management tool built with real-time synchronization, a drag-an
 
 ## 🤝 Contributing
 Feel free to fork the repository, create issues, and submit pull requests. All contributions are welcome!
-
-## 📜 License
-This project is licensed under the [MIT License](LICENSE).
-```
-
-Now it includes:
-- **Icons** to visually represent sections like live links, features, installation steps, and more.
-- A **consistent structure** to make it more readable and organized.
-
-This markdown should be easy to copy and paste directly into your `README.md` file!
