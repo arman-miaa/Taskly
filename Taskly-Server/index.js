@@ -74,28 +74,33 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/tasks", async (req, res) => {
-      try {
-        const email = req.query.email; 
-        // console.log(email,'emial');
-        
+app.get("/tasks", async (req, res) => {
+  try {
+    const email = req.query.email;
+    if (!email) {
+      return res.status(400).send({ message: "Email is required" });
+    }
 
-           const userExists = await userCollection.findOne({ email });
-           if (!userExists) {
-             return res.status(403).send({ message: "Unauthorized access" });
-           }
-        const result = await taskCollection
-          .find()
-          .sort({ index: 1 }) 
-          .toArray();
+    // Ensure the user exists in the database
+    const userExists = await userCollection.findOne({ email });
+    if (!userExists) {
+      return res.status(403).send({ message: "Unauthorized access" });
+    }
 
-        // Ensure the correct order and return to client
-        res.send(result);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-        res.status(500).send({ message: "Internal Server Error" });
-      }
-    });
+    // Fetch tasks for the specific user
+    const result = await taskCollection
+      .find({ email }) // Filter tasks based on the user's email
+      .sort({ index: 1 })
+      .toArray();
+
+    // Return the filtered tasks
+    res.send(result);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
 
     // 🔹 **POST: Add New Task**
     app.post("/tasks", async (req, res) => {
