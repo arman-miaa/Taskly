@@ -9,12 +9,20 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // Create HTTP server and initialize socket.io
-const server = http.createServer(app);
+// const server = http.createServer(app);
+// const io = socketIo(server, {
+//   cors: {
+//     origin: "*",
+   
+   
+//   },
+// });
+// Set the allowed origins (update with your frontend's URL for security)
 const io = socketIo(server, {
   cors: {
-    origin: "*",
+    origin: ["https://taskly1.netlify.app"], // Only allow this domain
     methods: ["GET", "POST"], // Allowed methods
-   
+    allowedHeaders: ["Content-Type"], // Allowed headers
   },
 });
 

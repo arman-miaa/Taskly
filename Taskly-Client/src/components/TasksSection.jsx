@@ -7,8 +7,8 @@ import { AuthContext } from "../providers/AuthProvider";
 import { toast } from "react-toastify";
 
 const categories = ["To-Do", "In Progress", "Done"];
-const API_URL = "http://localhost:5000"; 
-// const API_URL = "https://taskly-server-8pmq.onrender.com"; 
+// const API_URL = "http://localhost:5000"; 
+const API_URL = "https://taskly-enyu.onrender.com"; 
 
 
 const TasksSection = () => {
@@ -22,23 +22,20 @@ const TasksSection = () => {
   // console.log(user);
   const [editingTask, setEditingTask] = useState(null);
 
-
- 
-
-    useEffect(() => {
-      const socket = io(API_URL, {
-        transports: ["polling"],
-      });
-      socket.on("task-updated", fetchTasks);
-      return () => socket.disconnect();
-    }, []);
+  useEffect(() => {
+    const socket = io(API_URL, {
+      transports: ["polling"],
+    });
+    socket.on("task-updated", fetchTasks);
+    return () => socket.disconnect();
+  }, []);
 
   // Fetch tasks from server
   const fetchTasks = useCallback(async () => {
     // if (!user?.email) {
     //   console.error("User email is not available");
     //   toast.warn("User email is not available");
-      
+
     //   return;
     // }
 
@@ -58,18 +55,25 @@ const TasksSection = () => {
       toast.error("Error fetching tasks:");
       setTasks([]);
     }
-  }, [user]); 
+  }, [user]);
+  useEffect(() => {
+    if (!loading && user?.email) {
+      fetchTasks(); // Fetch tasks only if user is logged in and not loading
+    }
+  }, [loading, user, fetchTasks]);
+
+  useEffect(() => {
+    if (user?.email) {
+      // Fetch tasks only if the user email is available
+      const socket = io(API_URL, { transports: ["polling"] });
+      socket.on("task-updated", fetchTasks);
+      return () => socket.disconnect();
+    }
+  }, [user, fetchTasks]); 
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
-
-  useEffect(() => {
-    if (!loading && user?.email) {
-      fetchTasks();
-    }
-  }, [loading, user, fetchTasks]);
-
 
   // Handle Drag & Drop
   const handleDragEnd = async (result) => {
@@ -167,7 +171,6 @@ const TasksSection = () => {
     try {
       await fetch(`${API_URL}/tasks/${taskId}`, {
         method: "DELETE",
-        
       });
       setTasks(tasks.filter((task) => task._id !== taskId));
     } catch (error) {
@@ -254,7 +257,7 @@ const TasksSection = () => {
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className="p-4 border rounded-md shadow-md bg-gray-100 min-h-[300px]"
+                  className="p-4 border rounded-md shadow-md bg-gray-100 min-h-[300px] max-h-[calc(100vh-204px)] overflow-auto"
                 >
                   <h2 className="text-lg font-semibold mb-2">{category}</h2>
                   {tasks

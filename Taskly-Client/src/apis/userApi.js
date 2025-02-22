@@ -9,6 +9,7 @@ export const saveUser = async (user) => {
       body: JSON.stringify({
         name: user.displayName,
         email: user.email,
+       
       }),
     });
 
