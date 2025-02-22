@@ -42,6 +42,7 @@ async function run() {
     // await client.connect();
     // console.log("✅ Connected to MongoDB");
 
+    const userCollection = client.db("taskManagerDB").collection("users");
     const taskCollection = client.db("taskManagerDB").collection("tasks");
 
     // 🔹 **Socket.io: Handle Real-Time Connections**
@@ -55,6 +56,22 @@ async function run() {
       socket.on("disconnect", () => {
         console.log("❌ User disconnected");
       });
+    });
+
+    // save or update user data on mongodb
+    app.post("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const user = req.body;
+      console.log(user,query,email);
+
+      const isExist = await userCollection.findOne(query);
+      if (isExist) {
+        return res.send(isExist);
+      }
+
+      const result = await userCollection.insertOne(user);
+      res.send(result);
     });
 
     app.get("/tasks", async (req, res) => {

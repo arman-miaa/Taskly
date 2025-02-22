@@ -1,19 +1,23 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router"; // Import useNavigate
 import { AuthContext } from "../providers/AuthProvider";
+import { saveUser } from "../apis/userApi";
 
 const LoginPage = () => {
   const { signInWithGoogle } = useContext(AuthContext);
   const navigate = useNavigate(); // Initialize navigate
 
-  const handleWithGoogle = async () => {
-    try {
-      await signInWithGoogle();
-      navigate("/", { replace: true }); // Redirect to home & clear history
-    } catch (error) {
-      console.error("Login failed:", error.message);
-    }
-  };
+const handleWithGoogle = async () => {
+  try {
+    const result = await signInWithGoogle(); // Await the Google sign-in function
+    // console.log("User signed in:", result.user); 
+    saveUser(result.user)
+
+    navigate("/", { replace: true }); // Redirect to home page
+  } catch (error) {
+    console.error("Login failed:", error.message);
+  }
+};
 
   return (
     <div className="flex h-screen items-center justify-center bg-gray-100">

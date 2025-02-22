@@ -5,8 +5,8 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { FiEdit, FiTrash2, FiCheck } from "react-icons/fi";
 
 const categories = ["To-Do", "In Progress", "Done"];
-// const API_URL = "http://localhost:5000"; 
-const API_URL = "https://taskly-server-8pmq.onrender.com"; 
+const API_URL = "http://localhost:5000"; 
+// const API_URL = "https://taskly-server-8pmq.onrender.com"; 
 
 
 const TasksSection = () => {
