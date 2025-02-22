@@ -49,16 +49,32 @@ const Footer = () => {
           <div className="w-full sm:w-1/3 text-center">
             <h3 className="font-semibold text-xl mb-3">Follow Us</h3>
             <div className="flex justify-center gap-6">
-              <a href="#" className="text-gray-400 hover:text-white">
+              <a
+                href="https://www.facebook.com/arman2mia"
+                className="text-gray-400 hover:text-white"
+                target="_blank"
+              >
                 <FaFacebook size={24} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
+              <a
+                href="https://x.com/arman_miaa"
+                className="text-gray-400 hover:text-white"
+                target="_blank"
+              >
                 <FaTwitter size={24} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
+              <a
+                href="https://www.linkedin.com/in/arman-miaa"
+                className="text-gray-400 hover:text-white"
+                target="_blank"
+              >
                 <FaLinkedin size={24} />
               </a>
-              <a href="#" className="text-gray-400 hover:text-white">
+              <a
+                href="https://github.com/arman-miaa"
+                className="text-gray-400 hover:text-white"
+                target="_blank"
+              >
                 <FaGithub size={24} />
               </a>
             </div>

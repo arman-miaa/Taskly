@@ -59,7 +59,7 @@ const TasksSection = () => {
   }, [user]);
   useEffect(() => {
     if (!loading && user?.email) {
-      fetchTasks(); // Fetch tasks only if user is logged in and not loading
+      fetchTasks(); 
     }
   }, [loading, user, fetchTasks]);
 
